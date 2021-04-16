@@ -7,6 +7,13 @@ type
   ColumnVector* = Matrix # if possible: seq[seq[1, int]]
   Matrix* = seq[RowVector]
 
+## Overrides the echo() proc to provide more human-readable output
+proc echo*(A: Matrix) =
+  echo "@["
+  for row in A:
+    echo "  ", row
+  echo "]"
+
 ## Generate a new, filled XxX Matrix
 func gen*(rows, columns: int, element: int = 0): Matrix =
   result.setLen(rows)
@@ -15,18 +22,26 @@ func gen*(rows, columns: int, element: int = 0): Matrix =
     for j in 0 ..< columns:
       result[i][j] = element
 
+## Returns the number of rows in a matrix
+func rows*(A: Matrix): int =
+  return A.len()
+
+## Returns the number of columns in a matrix
+func columns*(A: Matrix): int =
+  return A[0].len()
+
 ## Apply an arbitrary function to every element of a matrix
 func map*(A: Matrix, op: proc(A: Matrix, i, j: int): int): Matrix =
-  result = gen(A.len(), A[0].len())
-  for i in 0 ..< A.len():
-    for j in 0 ..< A[i].len():
+  result = gen(A.rows(), A.columns())
+  for i in 0 ..< A.rows():
+    for j in 0 ..< A.columns():
       result[i][j] = op(A, i, j) # Note that the position is _actively_ provided
 
 ## Apply an arbitrary function to every element of a matrix
 func map*(A, B: Matrix, op: (Matrix, Matrix, int, int) -> int): Matrix =
-  result = gen(A.len(), A[0].len())
-  for i in 0 ..< A.len():
-    for j in 0 ..< A[i].len():
+  result = gen(A.rows(), A.columns())
+  for i in 0 ..< A.rows():
+    for j in 0 ..< A.columns():
       result[i][j] = op(A, B, i, j)
 
 ## Matrix addition
@@ -47,31 +62,24 @@ func `*`*(A: Matrix, B: int): Matrix =
 
 ## Matrix multiplication
 func `*`*(A, B: Matrix): Matrix =
-  assert A.len() == B[0].len(), "Mismatched rows and columns"
-  result = gen(A.len(), B[0].len())
-  for i in 0 ..< A.len():
-    for j in 0 ..< B[i].len():
-      for k in 0 ..< B.len():
+  assert A.rows() == B.columns(), "Mismatched rows and columns"
+  result = gen(A.rows(), B.columns())
+  for i in 0 ..< A.rows():
+    for j in 0 ..< B.columns():
+      for k in 0 ..< B.rows():
         result[i][j] += A[i][k] * B[k][j]
 
-## Absolute value of a Matrix
+## Absolute value of a matrix
 func abs*(A: Matrix): Matrix =
   return map(A, (a, i, j) => abs(a[i][j]))
 
-## Returns a "column vector" of a Matrix as a 1xX Matrix
+## Returns a "column vector" of a matrix as a Xx1 Matrix
 func col*(A: Matrix, j: int): ColumnVector =
-  result = gen(A.len(), 1)
-  for i in 0 ..< A.len():
+  result = gen(A.rows(), 1)
+  for i in 0 ..< A.rows():
     result[i] = @[A[i][j]]
 
 ## Alternate implementation of col, cleaner but in a different style
-func col2*(A: Matrix, column: int): ColumnVector =
+func column*(A: Matrix, column: int): ColumnVector =
   for row in A:
     result.add(@[row[column]])
-
-## Overrides the echo() proc to provide more human-readable output
-proc echo*(A: Matrix) =
-  echo "@["
-  for row in A:
-    echo "  ", row
-  echo "]"
