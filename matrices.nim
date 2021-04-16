@@ -7,19 +7,25 @@ type
   ColumnVector* = Matrix # if possible: seq[seq[1, int]]
   Matrix* = seq[RowVector]
 
+## Generate a new, filled XxX Matrix
+func gen*(rows, columns: int, element: int = 0): Matrix =
+  result.setLen(rows)
+  for i in 0 ..< rows:
+    result[i].setLen(columns)
+    for j in 0 ..< columns:
+      result[i][j] = element
+
 ## Apply an arbitrary function to every element of a matrix
 func map*(A: Matrix, op: proc(A: Matrix, i, j: int): int): Matrix =
-  result.setLen(A.len()) # At some point, I need to find out if setLen is the convention
+  result = gen(A.len(), A[0].len())
   for i in 0 ..< A.len():
-    result[i].setLen(A[i].len())
     for j in 0 ..< A[i].len():
       result[i][j] = op(A, i, j) # Note that the position is _actively_ provided
 
 ## Apply an arbitrary function to every element of a matrix
 func map*(A, B: Matrix, op: (Matrix, Matrix, int, int) -> int): Matrix =
-  result.setLen(A.len())
+  result = gen(A.len(), A[0].len())
   for i in 0 ..< A.len():
-    result[i].setLen(A[i].len())
     for j in 0 ..< A[i].len():
       result[i][j] = op(A, B, i, j)
 
@@ -42,9 +48,8 @@ func `*`*(A: Matrix, B: int): Matrix =
 ## Matrix multiplication
 func `*`*(A, B: Matrix): Matrix =
   assert A.len() == B[0].len(), "Mismatched rows and columns"
-  result.setLen(A.len())
+  result = gen(A.len(), B[0].len())
   for i in 0 ..< A.len():
-    result[i].setLen(B[i].len())
     for j in 0 ..< B[i].len():
       for k in 0 ..< B.len():
         result[i][j] += A[i][k] * B[k][j]
@@ -55,7 +60,7 @@ func abs*(A: Matrix): Matrix =
 
 ## Returns a "column vector" of a Matrix as a 1xX Matrix
 func col*(A: Matrix, j: int): ColumnVector =
-  result.setLen(A.len())
+  result = gen(A.len(), 1)
   for i in 0 ..< A.len():
     result[i] = @[A[i][j]]
 
@@ -64,7 +69,7 @@ func col2*(A: Matrix, column: int): ColumnVector =
   for row in A:
     result.add(@[row[column]])
 
-## Overrides the echo() proc to provide more readable output
+## Overrides the echo() proc to provide more human-readable output
 proc echo*(A: Matrix) =
   echo "@["
   for row in A:
