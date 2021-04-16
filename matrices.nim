@@ -1,5 +1,5 @@
 import sugar
-import vectors
+import numbers, vectors
 
 # Matrices don't need to be more than 2D hahaha
 type
@@ -28,7 +28,10 @@ func rows*(A: Matrix): int =
 
 ## Returns the number of columns in a matrix
 func columns*(A: Matrix): int =
-  return A[0].len()
+  if A.rows() == 0:
+    return 0
+  else:
+    return A[0].len()
 
 ## Apply an arbitrary function to every element of a matrix
 func map*(A: Matrix, op: proc(A: Matrix, i, j: int): int): Matrix =
@@ -83,3 +86,41 @@ func col*(A: Matrix, j: int): ColumnVector =
 func column*(A: Matrix, column: int): ColumnVector =
   for row in A:
     result.add(@[row[column]])
+
+## Generate an arbitary sized identity matrix
+func identity(size: NaturalInt): Matrix =
+  return map(gen(size, size), (a, i, j) => (if i==j: 1 else: 0))
+
+## Identity Matrices
+let
+  I1*: Matrix = identity(1)
+  I2*: Matrix = identity(2)
+  I3*: Matrix = identity(3)
+  I4*: Matrix = identity(4)
+  I5*: Matrix = identity(5)
+
+assert I1 == @[
+  @[1],
+]
+assert I2 == @[
+  @[1, 0],
+  @[0, 1],
+]
+assert I3 == @[
+  @[1, 0, 0],
+  @[0, 1, 0],
+  @[0, 0, 1],
+]
+assert I4 == @[
+  @[1, 0, 0, 0],
+  @[0, 1, 0, 0],
+  @[0, 0, 1, 0],
+  @[0, 0, 0, 1],
+]
+assert I5 == @[
+  @[1, 0, 0, 0, 0],
+  @[0, 1, 0, 0, 0],
+  @[0, 0, 1, 0, 0],
+  @[0, 0, 0, 1, 0],
+  @[0, 0, 0, 0, 1],
+]
