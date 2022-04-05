@@ -1,4 +1,4 @@
-import sugar
+import sugar, math
 import numbers, vectors
 
 # Matrices don't need to be more than 2D hahaha
@@ -15,7 +15,7 @@ proc echo*(A: Matrix) =
   echo "]"
 
 ## Generate a new, filled XxX Matrix
-func gen*(rows, columns: int, element: int = 0): Matrix =
+func gen*(rows, columns: Natural, element: int = 0): Matrix =
   result.setLen(rows)
   for i in 0 ..< rows:
     result[i].setLen(columns)
@@ -34,34 +34,28 @@ func columns*(A: Matrix): int =
     return A[0].len()
 
 ## Apply an arbitrary function to every element of a matrix
-func map*(A: Matrix, op: proc(A: Matrix, i, j: int): int): Matrix =
+func map*(A: Matrix, op: proc(i, j: int): int): Matrix =
   result = gen(A.rows(), A.columns())
   for i in 0 ..< A.rows():
     for j in 0 ..< A.columns():
-      result[i][j] = op(A, i, j) # Note that the position is _actively_ provided
+      result[i][j] = op(i, j) # Note that the position is _actively_ provided
 
-## Apply an arbitrary function to every element of a matrix
-func map*(A, B: Matrix, op: (Matrix, Matrix, int, int) -> int): Matrix =
-  result = gen(A.rows(), A.columns())
-  for i in 0 ..< A.rows():
-    for j in 0 ..< A.columns():
-      result[i][j] = op(A, B, i, j)
-
+# TODO: check if this meets assert requirements
 ## Matrix addition
 func `+`*(A, B: Matrix): Matrix =
-  return map(A, B, (a, b, i, j) => a[i][j] + b[i][j])
+  return map(A, (i, j) => A[i][j] + B[i][j])
 
 ## Matrix subtraction
 func `-`*(A, B: Matrix): Matrix =
-  return map(A, B, (a, b, i, j) => a[i][j] - b[i][j])
+  return map(A, (i, j) => A[i][j] - B[i][j])
 
 ## Scalar-Matrix multiplication
-func `*`*(A: int, B: Matrix): Matrix =
-  return map(B, (b, i, j) => A * b[i][j])
+func `*`*(a: int, B: Matrix): Matrix =
+  return map(B, (i, j) => a * B[i][j])
 
 ## Scalar-Matrix multiplication
-func `*`*(A: Matrix, B: int): Matrix =
-  return B * A
+func `*`*(A: Matrix, b: int): Matrix =
+  return b * A
 
 ## Matrix multiplication
 func `*`*(A, B: Matrix): Matrix =
@@ -74,7 +68,7 @@ func `*`*(A, B: Matrix): Matrix =
 
 ## Absolute value of a matrix
 func abs*(A: Matrix): Matrix =
-  return map(A, (a, i, j) => abs(a[i][j]))
+  return map(A, (i, j) => abs(A[i][j]))
 
 ## Returns a "column vector" of a matrix as a Xx1 Matrix
 func col*(A: Matrix, j: int): ColumnVector =
@@ -87,9 +81,22 @@ func column*(A: Matrix, column: int): ColumnVector =
   for row in A:
     result.add(@[row[column]])
 
+func diag*(A: Matrix): Vector =
+  assert A.rows() == A.columns(), "The matrix is not square"
+  for i in 0 ..< A.rows():
+    result.add(A[i][i])
+
+func transpose*(A: Matrix): Matrix =
+  result = gen(A.columns(), A.rows())
+  return map(result, (i, j) => (A[j][i]))
+
+func transpose*(a: Vector): Matrix =
+  result = gen(a.len(), 1)
+  return map(result, (i, j) => (a[j]))
+
 ## Generate an arbitary sized identity matrix
-func identity(size: NaturalInt): Matrix =
-  return map(gen(size, size), (a, i, j) => (if i==j: 1 else: 0))
+func identity*(size: Natural): Matrix =
+  return map(gen(size, size), (i, j) => (if i==j: 1 else: 0))
 
 ## Identity Matrices
 let
@@ -124,3 +131,19 @@ assert I5 == @[
   @[0, 0, 0, 1, 0],
   @[0, 0, 0, 0, 1],
 ]
+
+## Calculates the determinant of a matrix through Laplace expansion
+func det*(A: Matrix): int =
+  assert A.rows() == A.columns(), "The matrix is not square"
+  if A.rows() == 2:
+    return (A[0][0]*A[1][1]) - (A[0][1]*A[1][0])
+  for i in 0 ..< A.rows():
+    var sub: Matrix
+    for a in 0 ..< A.rows():
+      if a == 0: continue
+      var row: RowVector
+      for b in 0 ..< A.columns():
+        if b == i: continue
+        row.add(A[a][b])
+      sub.add(row)
+    result += (-1)^i * A[0][i] * det(sub)
