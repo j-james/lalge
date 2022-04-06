@@ -1,4 +1,4 @@
-vectors
-matrices
-tests
-types
+src/types
+src/vectors
+src/matrices
+tests/tests
