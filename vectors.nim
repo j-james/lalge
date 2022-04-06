@@ -18,21 +18,21 @@ func `-`*(a, b: Vector): Vector =
     result[i] = (a[i] - b[i])
 
 ## Vector dot product
-func `*`*(a, b: Vector): int =
+func `*`*(a, b: Vector): float =
   assert a.len() == b.len(), dim_mismatch
   for i in 0 ..< a.len():
     result += a[i] * b[i]
 
-func dot*(a, b: Vector): int =
+func dot*(a, b: Vector): float =
   return a * b
 
 ## Scalar-Vector multiplication
-func `*`*(a: int, b: Vector): Vector =
+func `*`*(a: float, b: Vector): Vector =
   return map(b, (x) => (a*x))
 
 ## Produce the length (in space) of a vector
 func length*(a: Vector): float =
-  return sqrt(dot(a, a).float)
+  return sqrt(a * a)
 
 ## Produce the number of elements in a vector
 func size*(a: Vector): int =
@@ -44,7 +44,7 @@ func ortho*(a, b: Vector): bool =
 
 ## Produce the angle between two vectors, in radians
 func angle*(a, b: Vector): Radian =
-  return arccos((a * b).float / (a.length * b.length))
+  return arccos((a * b) / (a.length * b.length))
 
 ## Produce the cross product between two 3D vectors
 func cross*(a, b: Vector): Vector =

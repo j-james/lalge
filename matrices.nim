@@ -26,7 +26,7 @@ proc echo*(A: Matrix) =
   echo "]"
 
 ## Generate a new, filled XxX Matrix
-func gen*(rows, columns: Natural, element: int = 0): Matrix =
+func gen*(rows, columns: Natural, element: float = 0.0): Matrix =
   result.setLen(rows)
   for i in 0 ..< rows:
     result[i].setLen(columns)
@@ -58,7 +58,7 @@ iterator cols*(A: Matrix): Vector =
     yield row
 
 ## Apply an arbitrary function to every element of a matrix
-func map*(A: Matrix, oper: proc(i, j: int): int): Matrix =
+func map*(A: Matrix, oper: proc(i, j: int): float): Matrix =
   result = gen(A.rows(), A.cols())
   for i in 0 ..< A.rows():
     for j in 0 ..< A.cols():
@@ -76,7 +76,7 @@ func `-`*(A, B: Matrix): Matrix =
   return map(A, (i, j) => A[i][j] - B[i][j])
 
 ## Scalar-Matrix multiplication
-func `*`*(a: int, B: Matrix): Matrix =
+func `*`*(a: float, B: Matrix): Matrix =
   return map(B, (i, j) => a * B[i][j])
 
 ## Scalar-Matrix multiplication
@@ -128,7 +128,7 @@ func transpose*(A: Matrix): Matrix =
 
 ## Generate an arbitary sized identity matrix
 func identity*(size: Natural): Matrix =
-  return map(gen(size, size), (i, j) => (if i==j: 1 else: 0))
+  return map(gen(size, size), (i, j) => (if i==j: 1.0 else: 0.0))
 
 ## Oft-used identity matrices
 let
@@ -139,7 +139,7 @@ let
   I5*: Matrix = identity(5)
 
 ## Calculates the determinant of a matrix through Laplace expansion
-func det*(A: Matrix): int =
+func det*(A: Matrix): float =
   assert A.rows() == A.cols(), not_square
   # Shortcut by formula
   if A.rows() == 2:
@@ -153,7 +153,7 @@ func det*(A: Matrix): int =
         if b == i: continue
         row.add(A[a][b])
       sub.add(row)
-    result += (-1)^i * A[0][i] * det(sub)
+    result += (-1.0)^i * A[0][i] * det(sub)
 
 # func spans(A, B: Matrix): bool =
 #   return false
